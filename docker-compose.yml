@@ -1,0 +1,45 @@
+version: "3"
+
+volumes:
+  db-data:
+
+services:
+  web:
+    build: ./web/
+    volumes:
+      - ./web-data/:/var/www/html/
+    links:
+      - db
+    environment:
+      VIRTUAL_HOST: gekita.local
+      CERT_NAME: gekita
+      HTTPS_METHOD: noredirect
+  db:
+    image: mysql:5.6
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gekita
+  pma:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+      VIRTUAL_HOST: pma.gekita.local
+      CERT_NAME: gekita
+      HTTPS_METHOD: noredirect
+    links:
+      - db
+    ports:
+      - 8081:80
+  proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      - "./proxy/keys/:/etc/nginx/certs"
