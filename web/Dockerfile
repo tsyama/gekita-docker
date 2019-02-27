@@ -1,12 +1,21 @@
 FROM php:7.2-apache
 
 RUN apt-get update -y
+
+# npmインストールの準備
+RUN apt-get install -y \
+    curl \
+    gnupg
+RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
+
 RUN apt-get install -y \
     git \
+    nodejs \
     unzip \
     zlib1g-dev \
     zip
 
+RUN npm install npm@latest -g
 RUN docker-php-ext-install pdo pdo_mysql zip
 
 COPY ./conf/gekita.conf /etc/apache2/sites-enabled/gekita.conf
